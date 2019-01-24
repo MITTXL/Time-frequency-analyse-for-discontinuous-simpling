@@ -12,7 +12,7 @@ t = 1/fs:1/fs:2;
 N = length(t);
 sig = sin(2*pi*(20*t'.^2 + 10*t'));
 %% 制造缺失区间
-jump_op = 319; % [可调] 
+jump_op = 300; % [可调] 
 jimp_ed = 320; % [可调] 
 t_ls = t([1:jump_op,jimp_ed:end]);
 sig_ls = sig([1:jump_op,jimp_ed:end]);
@@ -28,7 +28,9 @@ for n = 1:length(freq_vector)
     phi(:,2*n-1) = sin(2*pi*freq_vector(n)*t_ls);
     phi(:,2*n) = cos(2*pi*freq_vector(n)*t_ls);
 end
-theta = phi\sig_ls;
+% theta = (phi'*phi)*phi'*sig_ls;
+% theta = phi\sig_ls;
+theta = phi'*sig_ls;
 
 %% 重构信号
 resample_rete = 100; % [可调] 
