@@ -31,15 +31,17 @@ end
 % 求解LS方法
 % 问题：使用求解方法1，方法3效果和FFT缺失信号置0效果相同，具体表现为恢复信号缺失部分几乎为0
 % 方法2是左除，结果与张心亮学长程序相同，出现缺失部分过拟合问题
-% inv(phi'*phi)的结果是仅有对角线有数值的单位矩阵
-base1 = (phi'*phi)*phi';
-base2 = inv(phi'*phi)*phi';
+% phi'*phi的结果是仅有对角线有数值的单位矩阵
+temp1 = phi'*phi;
+base1 = temp1*phi';
+base2 = inv(temp1)*phi';
 base2 = base2./max(base2,[],2);
-theta1 = base1*sig_ls; 
+base3 = diag(ones(1,length(t)+1))*phi';
+theta1 = base3*sig_ls; 
 theta2 = phi\sig_ls;
 theta3 = phi'*sig_ls;
 %% 重构信号
-resample_rete = 1; % [可调] 
+resample_rete = 100; % [可调] 
 t_full = min(t):1/fs/resample_rete:max(t);
 freq_range_re = [fs/N/resample_rete:fs/N/resample_rete:fs/2/resample_rete];
 phi = zeros(length(freq_vector)*2+1, length(t_full));
