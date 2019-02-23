@@ -12,7 +12,7 @@ t = 1/fs:1/fs:2;
 N = length(t);
 sig = sin(2*pi*(20*t'.^2 + 10*t'));
 %% 制造缺失区间
-jump_op = 319; % [可调] 
+jump_op = 300; % [可调] 
 jimp_ed = 320; % [可调] 
 t_ls = t([1:jump_op,jimp_ed:end]);
 sig_ls = sig([1:jump_op,jimp_ed:end]);
