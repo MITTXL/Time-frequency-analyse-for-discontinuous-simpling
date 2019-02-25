@@ -1,5 +1,5 @@
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 最小二乘替代
+% 最小二乘替代FFT
 % 时间：20180106
 % 附属函数脚本：无
 % change log：对三种求解方法的分析对比
@@ -12,8 +12,8 @@ t = 1/fs:1/fs:2;
 N = length(t);
 sig = sin(2*pi*(20*t'.^2 + 10*t'));
 %% 制造缺失区间
-jump_op = 319; % [可调] 
-jimp_ed = 320; % [可调] 
+jump_op = 309; % [可调] 
+jimp_ed = 321; % [可调] 
 t_ls = t([1:jump_op,jimp_ed:end]);
 sig_ls = sig([1:jump_op,jimp_ed:end]);
 N_ls = length(t_ls);
@@ -23,7 +23,7 @@ continue_rate = 4/4; % [可调]
 % 求矩阵逆时报错并产生不理想的结果，论文中基函数顺序建议调整
 freq_range = [fs/N:fs/N:fs/2];
 freq_vector = freq_range(1:floor(length(freq_range)*continue_rate));
-phi = ones(N_ls, length(freq_vector)*2+1);
+phi = zeros(N_ls, length(freq_vector)*2+1);
 for n = 1:length(freq_vector)
     phi(:,2*n-1) = sin(2*pi*freq_vector(n)*t_ls);
     phi(:,2*n) = cos(2*pi*freq_vector(n)*t_ls);
@@ -34,14 +34,13 @@ end
 % phi'*phi的结果是仅有对角线有数值的单位矩阵
 temp1 = phi'*phi;
 base1 = temp1*phi';
-base2 = inv(temp1)*phi';
-base2 = base2./max(base2,[],2);
+base2 = pinv(temp1)*phi';
 base3 = diag(ones(1,length(t)+1))*phi';
-theta1 = base3*sig_ls; 
+theta1 = pinv(phi'*phi)*phi'*sig_ls; 
 theta2 = phi\sig_ls;
 theta3 = phi'*sig_ls;
 %% 重构信号
-resample_rete = 100; % [可调] 
+resample_rete = 10; % [可调] 
 t_full = min(t):1/fs/resample_rete:max(t);
 freq_range_re = [fs/N/resample_rete:fs/N/resample_rete:fs/2/resample_rete];
 phi = zeros(length(freq_vector)*2+1, length(t_full));
@@ -52,13 +51,7 @@ end
 sig_re1 = phi'*theta1;
 sig_re2 = phi'*theta2;
 sig_re3 = phi'*theta3;
-%% 重构信号与原信号时域对比
-figure,plot(t_full, sig_re3/max(sig_re3))
-hold on
-plot(t,sig,'g.')
-hold off
-title('方法3未加约束')
-%% 重构信号与原信号频域对比
+%% 方法1-3对比
 ft = abs(fftshift(fft(sig)));
 L1 = zeros(N/2+1,1);
 L2 = zeros(N/2+1,1);
@@ -80,5 +73,26 @@ figure,plot(L1),hold on
 plot(L2),hold on
 plot(L3),hold on
 plot(ft(length(ft)/2+2:length(ft))),hold off
-legend('方法1求逆','方法2左除','方法3转置', 'FFT未缺失')
+legend('方法1求逆pinv','方法2左除','方法3转置', 'FFT未缺失')
+% 方法1求逆pinv 方法3转置效果相同
 
+%% 拟合结果对比
+% 插值拟合
+sig_fit=interp1(t_ls,sig_ls,t,'spline');
+fft_fit = abs(fftshift(fft(sig_fit)));
+fft_fit = fft_fit/max(fft_fit);
+
+plot(L1),hold on
+plot(fft_fit(length(fft_fit)/2+2:length(fft_fit))),hold on
+plot(ft(length(ft)/2+2:length(ft))),hold off
+legend('方法3转置', 'FFT Fit','FFT未缺失')
+%% 重构信号与原信号时域对比
+figure,plot(t_full, sig_re1),hold on
+plot(t, sig_fit),hold on
+plot(t,sig,'g.')
+plot(t_ls,sig_ls,'r.'),hold off
+title('方法1未加约束')
+%%
+if sum(sig_re1.^2)/length(sig_re1) > sum(sig_ls.^2)/length(sig_ls)
+    disp('LS结果过拟合')
+end
