@@ -12,7 +12,7 @@ t = 1/fs:1/fs:2;
 N = length(t);
 sig = sin(2*pi*(20*t'.^2 + 10*t'));
 %% 制造缺失区间
-jump_op = 300; % [可调] 
+jump_op = 319; % [可调] 
 jimp_ed = 320; % [可调] 
 t_ls = t([1:jump_op,jimp_ed:end]);
 sig_ls = sig([1:jump_op,jimp_ed:end]);
@@ -53,11 +53,11 @@ sig_re1 = phi'*theta1;
 sig_re2 = phi'*theta2;
 sig_re3 = phi'*theta3;
 %% 重构信号与原信号时域对比
-figure,plot(t_full, sig_re1/max(sig_re1))
+figure,plot(t_full, sig_re3/max(sig_re3))
 hold on
 plot(t,sig,'g.')
 hold off
-title('LS未加约束')
+title('方法3未加约束')
 %% 重构信号与原信号频域对比
 ft = abs(fftshift(fft(sig)));
 L1 = zeros(N/2+1,1);
@@ -80,5 +80,5 @@ figure,plot(L1),hold on
 plot(L2),hold on
 plot(L3),hold on
 plot(ft(length(ft)/2+2:length(ft))),hold off
-legend('base','左除','转置', 'FFT')
+legend('方法1求逆','方法2左除','方法3转置', 'FFT未缺失')
 
